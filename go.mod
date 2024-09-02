@@ -2,7 +2,10 @@ module github.com/veqryn/awesome-go-sql
 
 go 1.22
 
-require github.com/jackc/pgx/v5 v5.6.0
+require (
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/jmoiron/sqlx v1.4.0
+)
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
