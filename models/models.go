@@ -27,7 +27,7 @@ type AccountIdeal struct {
 	Active     bool             `json:"active" db:"active"`
 	FavColor   *string          `json:"fav_color" db:"fav_color"`     // Can be null // Could also use sql.NullString or Nullable instead of *string
 	FavNumbers []int            `json:"fav_numbers" db:"fav_numbers"` // Can be null
-	Properties *json.RawMessage `json:"properties" db:"properties"`   // Can be null // []byte underlying type
+	Properties *json.RawMessage `json:"properties" db:"properties"`   // Can be null // Could also use []byte instead of *json.RawMessage
 	CreatedAt  time.Time        `json:"created_at" db:"created_at"`
 }
 

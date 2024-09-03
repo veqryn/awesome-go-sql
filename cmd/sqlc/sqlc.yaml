@@ -1,0 +1,30 @@
+version: "2"
+# https://docs.sqlc.dev/en/stable/reference/config.html
+cloud:
+  # export SQLC_AUTH_TOKEN=<fill in token here>
+  project: '01J6P5J878PA7SS5N63K945HPN'
+#servers:
+#  - engine: postgresql
+#    uri: "postgresql://postgres:password@localhost:5432?sslmode=disable"
+sql:
+  # brew install sqlc
+  # sqlc generate
+  # sqlc push --tag learning
+  # sqlc vet
+  # sqlc verify --against learning
+  - engine: "postgresql"
+    queries: "query.sql"
+    schema: "../../data/schema.sql"
+    database:
+      # "managed" creates an ephemeral db using your schema to run analysis against
+      # managed: true
+      # "uri" will use the existing db, and it assumes the schema is up-to-date
+      uri: "postgresql://postgres:password@localhost:5432/awesome"
+    rules:
+      - sqlc/db-prepare
+    gen:
+      go:
+        package: "model"
+        out: "internal/model"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
