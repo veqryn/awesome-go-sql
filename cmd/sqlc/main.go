@@ -49,6 +49,7 @@ func main() {
 		db:      db,
 	}
 
+	// Query 1
 	_, err = dao.SelectAccountByID(ctx, 0)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		fmt.Printf("ERROR: %#+v\n", err)
@@ -59,6 +60,7 @@ func main() {
 	}
 	// fmt.Printf("--------\nQuery by ID\n%s\n", AccountToStr(account))
 
+	// Query multiple
 	accounts, err := dao.SelectAllAccounts(ctx)
 	if err != nil {
 		fmt.Printf("ERROR: %#+v\n", err)
@@ -69,6 +71,7 @@ func main() {
 		fmt.Printf("%s\n\n", AccountToStr(account))
 	}
 
+	// Dynamic Query of multiple
 	accounts, err = dao.SelectAllAccountsByFilter(ctx, model.SelectAllAccountsByFilterParams{
 		AnyNames: true,
 		Names:    []string{"Jane", "John"},
@@ -92,6 +95,7 @@ type DAO struct {
 	db *pgxpool.Pool
 }
 
+// AccountToStr pretty-prints the generated account model
 func AccountToStr(a model.Account) string {
 	return fmt.Sprintf("Account:\nID: %d\nName: %s\nEmail: %s\nActive: %t\nFavColor: %s\nFavNumbers: %v\nProperties: %s\nCreatedAt: %s",
 		a.ID,
@@ -104,6 +108,7 @@ func AccountToStr(a model.Account) string {
 		a.CreatedAt.Time)
 }
 
+// NullColorsToStr pretty-prints the generated NullColors
 func NullColorsToStr(nc model.NullColors) string {
 	if !nc.Valid {
 		return "<nil>"

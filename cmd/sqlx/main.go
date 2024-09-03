@@ -166,5 +166,5 @@ func main() {
 }
 
 type DAO struct {
-	db *sqlx.DB
+	db *sqlx.DB // Wrap the db connection
 }

@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-jet/jet/v2 v2.11.1
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/jmoiron/sqlx v1.4.0
