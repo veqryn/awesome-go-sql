@@ -79,7 +79,7 @@ func (d DAO) SelectAllAccountsByFilter(ctx context.Context, filters models.Filte
 		query = query.Where(goqu.Ex{"name": filters.Names})
 	}
 	if filters.Active != nil {
-		query = query.Where(goqu.Ex{"active": filters.Active})
+		query = query.Where(goqu.Ex{"active": *filters.Active})
 	}
 	if len(filters.FavColors) > 0 {
 		query = query.Where(goqu.Ex{"fav_color": filters.FavColors})

@@ -1,17 +1,13 @@
 /*
-Build and run some queries using the goqu library.
-GOQU combines both a SQL Builder with a struct scanner.
-Because of this, the boilerplate code is cut to an absolute minimum.
-Some disadvantages:
-  - GOQU does its own interpolation. This is arguably a security concern, as I
-    would much rather trust Postgres to correctly interpolate parameters.
-  - A very minor disadvantage is that it doesn't use postgres' =ANY($1) format
-    for IN queries using a slice, and instead enumerates all values in the slice.
-  - The struct scanning only works if you pass the database/sql package's DB
-    object in, which means it only works with database/sql and does not work
-    with PGX.
-    You could choose to only use the builder, and use a different scanning
-    library, if you wanted PGX.
+Build and run some queries using the sqlbuilder library.
+SQLBuilder is focused on flexibly building sql statements, and also has a very
+light struct-to-column-names introspection utility, that can be used to avoid
+writing out and potentially misspelling or not matching column names in queries.
+A very minor disadvantage is that it doesn't use postgres' =ANY($1) format
+for IN queries using a slice, and instead enumerates all values in the slice.
+It can be used to build dynamic queries, as well as non-standard sql.
+It can be combined with other libraries that do struct scanning or querying.
+It works with both database/sql and pgx.
 */
 package main
 
@@ -20,14 +16,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/doug-martin/goqu/v9"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5" // DB Driver
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/veqryn/awesome-go-sql/models"
 )
 
 func (d DAO) SelectAccountByID(ctx context.Context, id uint64) (models.AccountIdeal, bool, error) {
-	query := d.builder.Select(
+	sb := sqlbuilder.PostgreSQL.NewSelectBuilder()
+	query := sb.Select(
 		"id",
 		"name",
 		"email",
@@ -37,16 +34,12 @@ func (d DAO) SelectAccountByID(ctx context.Context, id uint64) (models.AccountId
 		"properties",
 		"created_at").
 		From("accounts").
-		Where(goqu.Ex{"id": id})
-	//Prepared(true). // Doesn't work for postgres
+		Where(sb.EQ("id", id))
 
-	sqlStr, args, err := query.ToSQL()
-	if err != nil {
-		return models.AccountIdeal{}, false, err
-	}
+	sqlStr, args := query.Build()
 
 	var account models.AccountIdeal
-	err = d.db.QueryRow(ctx, sqlStr, args...).Scan(
+	err := d.db.QueryRow(ctx, sqlStr, args...).Scan(
 		&account.ID,
 		&account.Name,
 		&account.Email,
@@ -66,23 +59,16 @@ func (d DAO) SelectAccountByID(ctx context.Context, id uint64) (models.AccountId
 	}
 }
 
-func (d DAO) SelectAllAccounts(ctx context.Context) ([]models.AccountIdeal, error) {
-	query := d.builder.Select(
-		"id",
-		"name",
-		"email",
-		"active",
-		"fav_color",
-		"fav_numbers",
-		"properties",
-		"created_at").
-		From("accounts")
-		//Prepared(true). // Doesn't work for postgres
+// sqlbuilder.NewStruct() provides a way to generate the selected columns based
+// on a struct and its tags.
+var accountModel = sqlbuilder.NewStruct(models.AccountIdeal{}).For(sqlbuilder.PostgreSQL)
 
-	sqlStr, args, err := query.ToSQL()
-	if err != nil {
-		return nil, err
-	}
+func (d DAO) SelectAllAccounts(ctx context.Context) ([]models.AccountIdeal, error) {
+	// This generates the selected column names automatically based on the
+	// struct type definition.
+	query := accountModel.SelectFrom("accounts")
+
+	sqlStr, args := query.Build()
 
 	rows, err := d.db.Query(ctx, sqlStr, args...)
 	if err != nil {
@@ -117,7 +103,9 @@ func (d DAO) SelectAllAccounts(ctx context.Context) ([]models.AccountIdeal, erro
 }
 
 func (d DAO) SelectAllAccountsByFilter(ctx context.Context, filters models.Filters) ([]models.AccountIdeal, error) {
-	query := d.builder.Select(
+
+	sb := sqlbuilder.PostgreSQL.NewSelectBuilder()
+	query := sb.Select(
 		"id",
 		"name",
 		"email",
@@ -127,23 +115,19 @@ func (d DAO) SelectAllAccountsByFilter(ctx context.Context, filters models.Filte
 		"properties",
 		"created_at").
 		From("accounts")
-		//Prepared(true). // Doesn't work for postgres
 
 	// Nicely add filters dynamically
 	if len(filters.Names) > 0 {
-		query = query.Where(goqu.Ex{"name": filters.Names})
+		query = query.Where(sb.In("name", sqlbuilder.List(filters.Names)))
 	}
 	if filters.Active != nil {
-		query = query.Where(goqu.Ex{"active": *filters.Active})
+		query = query.Where(sb.EQ("active", *filters.Active))
 	}
 	if len(filters.FavColors) > 0 {
-		query = query.Where(goqu.Ex{"fav_color": filters.FavColors})
+		query = query.Where(sb.In("fav_color", sqlbuilder.List(filters.FavColors)))
 	}
 
-	sqlStr, args, err := query.ToSQL()
-	if err != nil {
-		return nil, err
-	}
+	sqlStr, args := query.Build()
 	fmt.Printf("--------\nDynamic Query SQL:\n%s\n\nDynamic Query Args:\n%#+v\n", sqlStr, args)
 
 	rows, err := d.db.Query(ctx, sqlStr, args...)
@@ -189,8 +173,7 @@ func main() {
 	defer db.Close()
 
 	dao := DAO{
-		builder: goqu.Dialect("postgres"),
-		db:      db,
+		db: db,
 	}
 
 	// Query 1
@@ -233,6 +216,5 @@ func main() {
 }
 
 type DAO struct {
-	builder goqu.DialectWrapper
-	db      *pgxpool.Pool
+	db *pgxpool.Pool
 }
