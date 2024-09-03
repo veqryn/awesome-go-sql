@@ -1,10 +1,12 @@
 /*
-Build and run some queries using the pgx package (the latest and most popular
-golang postgres driver).
-Almost the same as the standard library version, but does not use database/sql,
-and therefore has its own interface, though it is almost identical.
-It automatically scans into all types that we expect, without additional
-wrappers.
+Build and run some queries using the Squirrel library.
+The main advantage of this library is using it to build dynamic queries,
+though it can be used to build any queries.
+A very minor disadvantage is that it doesn't use postgres' =ANY($1) format
+for IN queries using a slice, and instead enumerates all values in the slice.
+Because it only creates the SQL string and argument list, it can be combined
+with other libraries that do struct scanning or querying.
+It works with both database/sql and pgx.
 */
 package main
 
@@ -12,29 +14,34 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5" // DB Driver
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/veqryn/awesome-go-sql/models"
 )
 
 func (d DAO) SelectAccountByID(ctx context.Context, id uint64) (models.AccountIdeal, bool, error) {
-	const query = `
-		SELECT
-			id,
-			name,
-			email,
-			active,
-			fav_color,
-			fav_numbers,
-			properties,
-			created_at
-		FROM accounts
-		WHERE id = $1`
+	query := sq.
+		Select(
+			"id",
+			"name",
+			"email",
+			"active",
+			"fav_color",
+			"fav_numbers",
+			"properties",
+			"created_at").
+		From("accounts").
+		Where(sq.Eq{"id": id})
+
+	sqlStr, args, err := query.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return models.AccountIdeal{}, false, err
+	}
 
 	var account models.AccountIdeal
-	err := d.db.QueryRow(ctx, query, id).Scan(
+	err = d.db.QueryRow(ctx, sqlStr, args...).Scan(
 		&account.ID,
 		&account.Name,
 		&account.Email,
@@ -55,20 +62,25 @@ func (d DAO) SelectAccountByID(ctx context.Context, id uint64) (models.AccountId
 }
 
 func (d DAO) SelectAllAccounts(ctx context.Context) ([]models.AccountIdeal, error) {
-	const query = `
-		SELECT
-			id,
-			name,
-			email,
-			active,
-			fav_color,
-			fav_numbers,
-			properties,
-			created_at
-		FROM accounts
-		ORDER BY id`
+	query := sq.
+		Select(
+			"id",
+			"name",
+			"email",
+			"active",
+			"fav_color",
+			"fav_numbers",
+			"properties",
+			"created_at").
+		From("accounts").
+		OrderBy("id")
 
-	rows, err := d.db.Query(ctx, query)
+	sqlStr, args, err := query.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := d.db.Query(ctx, sqlStr, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,44 +113,37 @@ func (d DAO) SelectAllAccounts(ctx context.Context) ([]models.AccountIdeal, erro
 }
 
 func (d DAO) SelectAllAccountsByFilter(ctx context.Context, filters models.Filters) ([]models.AccountIdeal, error) {
-	query := `
-		SELECT
-			id,
-			name,
-			email,
-			active,
-			fav_color,
-			fav_numbers,
-			properties,
-			created_at
-		FROM accounts`
+	query := sq.
+		Select(
+			"id",
+			"name",
+			"email",
+			"active",
+			"fav_color",
+			"fav_numbers",
+			"properties",
+			"created_at").
+		From("accounts").
+		OrderBy("id")
 
-	// Sadly, we have to manually build dynamic queries
-	var wheres []string
-	var args []any
-	argCount := 1
+	// Nicely add filters dynamically
 	if len(filters.Names) > 0 {
-		wheres = append(wheres, fmt.Sprintf("name = ANY($%d)", argCount))
-		args = append(args, filters.Names)
-		argCount++
+		query = query.Where(sq.Eq{"name": filters.Names})
 	}
 	if filters.Active != nil {
-		wheres = append(wheres, fmt.Sprintf("active = $%d", argCount))
-		args = append(args, *filters.Active)
-		argCount++
+		query = query.Where(sq.Eq{"active": *filters.Active})
 	}
 	if len(filters.FavColors) > 0 {
-		wheres = append(wheres, fmt.Sprintf("fav_color = ANY($%d)", argCount))
-		args = append(args, filters.FavColors)
-		argCount++
+		query = query.Where(sq.Eq{"fav_color": filters.FavColors})
 	}
 
-	if len(wheres) > 0 {
-		query += " WHERE " + strings.Join(wheres, " AND ")
+	sqlStr, args, err := query.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, err
 	}
-	fmt.Printf("--------\nDynamic Query SQL:\n%s\n\nDynamic Query Args:\n%#+v\n", query, args)
+	fmt.Printf("--------\nDynamic Query SQL:\n%s\n\nDynamic Query Args:\n%#+v\n", sqlStr, args)
 
-	rows, err := d.db.Query(ctx, query, args...)
+	rows, err := d.db.Query(ctx, sqlStr, args...)
 	if err != nil {
 		return nil, err
 	}

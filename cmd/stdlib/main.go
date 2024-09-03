@@ -198,15 +198,15 @@ func main() {
 	dao := DAO{db: db}
 
 	// Query 1
-	account, ok, err := dao.SelectAccountByID(ctx, 4)
+	_, ok, err := dao.SelectAccountByID(ctx, 0)
 	if err != nil {
 		fmt.Printf("ERROR: %#+v\n", err)
 		panic(err)
 	}
-	if !ok {
-		panic("ERROR: Account not found")
+	if ok {
+		panic("ERROR: Account should not be found")
 	}
-	fmt.Printf("--------\nQuery by ID\n%s\n", account)
+	// fmt.Printf("--------\nQuery by ID\n%s\n", account)
 
 	// Query multiple
 	accounts, err := dao.SelectAllAccounts(ctx)
