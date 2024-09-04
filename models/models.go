@@ -21,14 +21,14 @@ type Filters struct {
 // AccountIdeal is the ideal model for an "accounts" row we would like to use,
 // with hope that our driver and helper library can directly use this.
 type AccountIdeal struct {
-	ID         uint64           `json:"id" db:"id"`
-	Name       string           `json:"name" db:"name"`
-	Email      string           `json:"email" db:"email"`
-	Active     bool             `json:"active" db:"active"`
-	FavColor   *string          `json:"fav_color" db:"fav_color"`     // Can be null // Could also use sql.NullString or Nullable instead of *string
-	FavNumbers []int            `json:"fav_numbers" db:"fav_numbers"` // Can be null
-	Properties *json.RawMessage `json:"properties" db:"properties"`   // Can be null // Could also use []byte instead of *json.RawMessage
-	CreatedAt  time.Time        `json:"created_at" db:"created_at"`
+	ID         uint64           `json:"id" db:"id" ksql:"id"`
+	Name       string           `json:"name" db:"name" ksql:"name"`
+	Email      string           `json:"email" db:"email" ksql:"email"`
+	Active     bool             `json:"active" db:"active" ksql:"active"`
+	FavColor   *string          `json:"fav_color" db:"fav_color" ksql:"fav_color"`       // Can be null // Could also use sql.NullString or Nullable instead of *string
+	FavNumbers []int            `json:"fav_numbers" db:"fav_numbers" ksql:"fav_numbers"` // Can be null
+	Properties *json.RawMessage `json:"properties" db:"properties" ksql:"properties"`    // Can be null // Could also use []byte instead of *json.RawMessage
+	CreatedAt  time.Time        `json:"created_at" db:"created_at" ksql:"created_at"`
 }
 
 func (a AccountIdeal) String() string {
@@ -49,14 +49,14 @@ func (a AccountIdeal) String() string {
 // This is usually because the helper library is forced to use the stdlib
 // version of pgx.
 type AccountCompatible struct {
-	ID         uint64           `json:"id" db:"id"`
-	Name       string           `json:"name" db:"name"`
-	Email      string           `json:"email" db:"email"`
-	Active     bool             `json:"active" db:"active"`
-	FavColor   *string          `json:"fav_color" db:"fav_color"`     // Can be null // Could also use sql.NullString or Nullable instead of *string
-	FavNumbers Array[int]       `json:"fav_numbers" db:"fav_numbers"` // Can be null
-	Properties *json.RawMessage `json:"properties" db:"properties"`   // Can be null // Could also use []byte instead of *json.RawMessage
-	CreatedAt  time.Time        `json:"created_at" db:"created_at"`
+	ID         uint64           `json:"id" db:"id" ksql:"id"`
+	Name       string           `json:"name" db:"name" ksql:"name"`
+	Email      string           `json:"email" db:"email" ksql:"email"`
+	Active     bool             `json:"active" db:"active" ksql:"active"`
+	FavColor   *string          `json:"fav_color" db:"fav_color" ksql:"fav_color"`       // Can be null // Could also use sql.NullString or Nullable instead of *string
+	FavNumbers Array[int]       `json:"fav_numbers" db:"fav_numbers" ksql:"fav_numbers"` // Can be null
+	Properties *json.RawMessage `json:"properties" db:"properties" ksql:"properties"`    // Can be null // Could also use []byte instead of *json.RawMessage
+	CreatedAt  time.Time        `json:"created_at" db:"created_at" ksql:"created_at"`
 }
 
 func (a AccountCompatible) String() string {

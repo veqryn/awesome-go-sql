@@ -3,7 +3,7 @@ Actual example use cases for a curated list of golang sql builder/generator/scan
 
 ## Summary
 For non-dynamic queries, try out SQLC.
-For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL string and args slice, then use Scany to run the query and scan to a struct/slice.
+For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL string and args slice, then use Scany or KSQL to run the query and scan to a struct/slice.
 
 
 ## Completed Examples
@@ -11,7 +11,7 @@ For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL str
 * [database/sql](./cmd/stdlib/main.go)
 * [github.com/jackc/pgx/v5](./cmd/pgx/main.go)
 
-### Generators
+### Model Generators
 * [github.com/sqlc-dev/sqlc](./cmd/sqlc/main.go)
 * [github.com/go-jet/jet/v2](./cmd/jet/main.go)
 
@@ -22,12 +22,9 @@ For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL str
 
 ### Struct Scanners 
 * [github.com/georgysavva/scany/v2](./cmd/scany/main.go)
+* [github.com/vingarcia/ksql](./cmd/ksql/main.go)
 * [github.com/blockloop/scan](./cmd/scan/main.go)
 * [github.com/jmoiron/sqlx](./cmd/sqlx/main.go)
-
-
-## TODO
-* github.com/vingarcia/ksql
 
 
 ## Ran Into Problems
