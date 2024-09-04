@@ -22,11 +22,11 @@ For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL str
 
 ### Struct Scanners 
 * [github.com/georgysavva/scany/v2](./cmd/scany/main.go)
+* [github.com/blockloop/scan](./cmd/scan/main.go)
 * [github.com/jmoiron/sqlx](./cmd/sqlx/main.go)
 
 
 ## TODO
-* github.com/blockloop/scan
 * github.com/vingarcia/ksql
 
 
