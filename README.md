@@ -2,9 +2,9 @@
 Actual example use cases for a curated list of golang sql builder/generator/scanner/helper libraries
 
 ## Summary
-For static queries, use `sqlc`.
+For static queries, try `sqlc`.
 
-For dynamic queries, use `go-sqlbuilder`, `squirrel`, or `Jet` to craft the SQL string and args slice, then use `Scany` or `KSQL` to run the query and scan to a struct/slice.
+For dynamic queries, try `go-sqlbuilder`, `squirrel`, or `jet` to craft the SQL string and args slice, then use `scany` or `ksql` to run the query and scan to a struct/slice.
 
 
 ## Completed Examples
