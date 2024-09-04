@@ -1,6 +1,11 @@
 # awesome-go-sql
 Actual example use cases for a curated list of golang sql builder/generator/scanner/helper libraries
 
+## Summary
+For non-dynamic queries, try out SQLC.
+For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL string and args slice, then use Scany to run the query and scan to a struct/slice.
+
+
 ## Completed Examples
 ### No libraries besides database drivers
 * [database/sql](./cmd/stdlib/main.go)
@@ -21,11 +26,10 @@ Actual example use cases for a curated list of golang sql builder/generator/scan
 
 
 ## TODO
-* github.com/lqs/sqlingo
-* github.com/bokwoon95/sq
 * github.com/blockloop/scan
 * github.com/vingarcia/ksql
 
-## Summary
-For non-dynamic queries, try out SQLC.
-For dynamic queries, use any one of the SQL Builders or Jet to craft the SQL string and args, then use Scany to run the query and scan to a struct/slice.
+
+## Ran Into Problems
+* [github.com/bokwoon95/sq](./cmd/sq/main.go) Queries have errors.
+* github.com/lqs/sqlingo Failed to generate files for postgres.
